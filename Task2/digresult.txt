@@ -1,0 +1,22 @@
+
+; <<>> DiG 9.16.1-Ubuntu <<>> www.baidu.com
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 30736
+;; flags: qr rd ra; QUERY: 1, ANSWER: 3, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 65494
+;; QUESTION SECTION:
+;www.baidu.com.			IN	A
+
+;; ANSWER SECTION:
+www.baidu.com.		5	IN	CNAME	www.a.shifen.com.
+www.a.shifen.com.	4	IN	A	36.155.132.31
+www.a.shifen.com.	4	IN	A	36.155.132.55
+
+;; Query time: 71 msec
+;; SERVER: 127.0.0.53#53(127.0.0.53)
+;; WHEN: 二 10月 03 20:44:51 CST 2023
+;; MSG SIZE  rcvd: 101
+
