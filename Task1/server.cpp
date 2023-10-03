@@ -1,64 +1,109 @@
-#include <iostream>
-#include <boost/asio.hpp>
-using namespace std;
-using namespace boost;
-using namespace asio;
-using namespace asio::ip;
-const char udpString[10] = "UDPUDP";
-bool udpok;
-int port;
-void InputRequestAndPort() {
-	char Y_N;
-	printf("allow to receive udp package?(Y/N) ");
-	scanf("%c",Y_N);
-	if(Y_N=='Y') udpok=true;
-	else udpok=false;
-	printf("port: ");
-	scanf("%d",&port);
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <cstring>
+#include <cstdio>
+#include <thread>
+int TCPport, UDPport;
+bool UDPok;
+void Input()
+{
+	printf("allow to receive UDP package?(Y/N): ");
+	char ch;
+	scanf("%c", &ch);
+	if (ch == 'Y')
+		UDPok = true;
+	else
+		UDPok = false;
+	printf("set TCP port: ");
+	scanf("%d", &TCPport);
+	printf("set UDP port: ");
+	scanf("%d", &UDPport);
 }
 int main()
 {
-	InputRequestAndPort();
-	try
+	Input();
+	int TCPsocket = socket(AF_INET, SOCK_STREAM, 0);
+	if (TCPsocket == -1)
 	{
-		io_context ioContext;												  //管理各项网络任务
-		tcp::acceptor tcpAcceptor(ioContext, tcp::endpoint(tcp::v4(), 8080)); //获取客户端 ip+port
-		tcp::socket tcpSocket(ioContext);
-		tcpAcceptor.accept(tcpSocket); //接受客户端连接
-		printf("client IP:%s\n", tcpSocket.remote_endpoint().address().to_string().c_str());
-		bool useUDP = false;
-		while (1)
-		{
-			char data[100] = {0};
-			// buffer(...) 管理传入的内存，作为缓冲区，所有收发数据都要用这玩意
-			tcpSocket.receive(buffer(data)); // receive() 接受客户端发送的数据
-			puts(data);
-			if (strcmp(data, udpString) == 0)
-			{
-				if(udpok) {
-					useUDP = true;
-					break;
-				}
-			}
-			tcpSocket.send(buffer(data)); // send() 向客户端发送数据
-		}
-		if (useUDP)
-		{
-			io_context ioContext;
-			udp::socket udpSocket(ioContext, udp::endpoint(udp::v4(), 8080));
-			while (1)
-			{
-				char data[100] = {0};
-				udp::endpoint datafrom;
-				udpSocket.receive_from(buffer(data), datafrom);
-				udpSocket.send_to(buffer(data), datafrom);
-			}
-		}
-	}
-	catch (std::exception &e)
-	{
-		fprintf(stderr, "Exception: %s\n", e.what());
+		fprintf(stderr, "Failed to create TCP socket!\n");
+		return -1;
 	}
 
-	return 0;
+	struct sockaddr_in TCPaddress;
+	TCPaddress.sin_family = AF_INET;
+	TCPaddress.sin_port = htons(TCPport);
+	TCPaddress.sin_addr.s_addr = INADDR_ANY;
+
+	if (bind(TCPsocket, (struct sockaddr *)&TCPaddress, sizeof(TCPaddress)) == -1) //将 socket 和端口绑定
+	{
+		fprintf(stderr, "Failed to bind TCP socket!\n");
+		close(TCPsocket);
+		return -1;
+	}
+
+	if (listen(TCPsocket, 5) == -1) //监听端口
+	{
+		fprintf(stderr, "Failed to listen on TCP socket!\n");
+		close(TCPsocket);
+		return -1;
+	}
+
+	int UDPsocket = socket(AF_INET, SOCK_DGRAM, 0);
+	if (UDPsocket == -1)
+	{
+		fprintf(stderr, "Failed to create UDP socket!\n");
+		close(TCPsocket);
+		return -1;
+	}
+	sockaddr_in UDPaddress;
+	UDPaddress.sin_family = AF_INET;
+	UDPaddress.sin_port = htons(UDPport);
+	UDPaddress.sin_addr.s_addr = INADDR_ANY;
+
+	if (bind(UDPsocket, (struct sockaddr *)&UDPaddress, sizeof(UDPaddress)) == -1)
+	{
+		fprintf(stderr, "Failed to bind UDP socket!\n");
+		close(TCPsocket);
+		close(UDPsocket);
+		return -1;
+	}
+	//双线程处理 TCP 和 UDP 请求
+	std::thread TCPthread([&]()
+						  {
+    	while (1) {
+			char data[100];
+			sockaddr_in clientAddress;
+			socklen_t addressLength = sizeof(clientAddress);
+			int clientSocket = accept(TCPsocket, (struct sockaddr*)&clientAddress, &addressLength);
+			if (clientSocket == -1) {
+				fprintf(stderr, "Failed to connect with TCP!\n");
+				continue;
+			}
+			ssize_t dataLength = recv(clientSocket, data, sizeof(data), 0);
+			send(clientSocket, data, dataLength, 0);
+			close(clientSocket);} });
+
+	std::thread UDPthread([&]()
+						  {
+		while (1)
+		{
+			char data[100];
+			sockaddr_in clientAddress;
+			socklen_t addressLength = sizeof(clientAddress);
+			ssize_t recvLength = recvfrom(UDPsocket, data, sizeof(data), 0, (struct sockaddr *)&clientAddress, &addressLength);
+			if (recvLength == -1)
+			{
+				fprintf(stderr, "Failed to receive UDP package!\n");
+				continue;
+			}
+			else if(UDPok == false) {
+				fprintf(stderr, "UDP is not allowed!\n");
+				continue;
+			}
+			sendto(UDPsocket, data, sizeof(data), 0, (struct sockaddr *)&clientAddress, addressLength);
+
+		} });
+	UDPthread.join();
 }
