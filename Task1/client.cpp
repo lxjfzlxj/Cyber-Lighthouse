@@ -2,7 +2,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include <cstring>
+#include <bits/stdc++.h>
 const int DOMAIN = AF_INET;
 char address[100];
 char sendData[100];
