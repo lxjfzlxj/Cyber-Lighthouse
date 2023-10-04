@@ -1,3 +1,4 @@
+#include <bits/stdc++.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -5,7 +6,8 @@
 #include <cstring>
 #include <cstdio>
 #include <thread>
-int TCPport, UDPport;
+int TCPport;
+int UDPport;
 bool UDPok;
 void Input()
 {
@@ -23,7 +25,7 @@ void Input()
 }
 int main()
 {
-	Input();
+	Input(); 
 	int TCPsocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (TCPsocket == -1)
 	{
@@ -69,7 +71,7 @@ int main()
 		close(UDPsocket);
 		return -1;
 	}
-	//双线程处理 TCP 和 UDP 请求
+	//双线程处理 TCP 和 UDP 请求 
 	std::thread TCPthread([&]()
 						  {
     	while (1) {
