@@ -49,7 +49,7 @@ void Generate()
 int main(int argc, char *argv[])
 {
 	srand((unsigned long long)(new char));
-	if (strcmp(argv[1], "-A") == 0)
+	if (strcmp(argv[1], "A") == 0)
 	{
 		ID = rand() % 65536;
 		QR = 0;
