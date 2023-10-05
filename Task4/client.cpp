@@ -6,23 +6,12 @@
 #include <bits/stdc++.h>
 namespace CLIENT
 {
+#define MAXSIZE 1000
 	const int DOMAIN = AF_INET;
-	char address[100];
-	char sendData[100];
-	char readData[100];
-	int port;
-	void InputAddressAndData()
+	unsigned char readData[MAXSIZE];
+	dataPackage answer;
+	void TCPwork(const char *address, int port, unsigned char *sendData, int dataSize)
 	{
-		printf("IP address: ");
-		scanf("%s", address);
-		printf("port: ");
-		scanf("%d", &port);
-		printf("data: ");
-		scanf("%s", sendData);
-	}
-	void TCPwork()
-	{
-		InputAddressAndData();
 		/*
 		create socket
 		domain
@@ -59,7 +48,7 @@ namespace CLIENT
 		{
 			printf("Succeed to connect!\n");
 		}
-		ssize_t sendLength = send(mySocket, sendData, strlen(sendData), 0);
+		ssize_t sendLength = send(mySocket, sendData, dataSize, 0);
 		if (sendLength < 0)
 		{
 			fprintf(stderr, "Failed to send data!\n");
@@ -70,7 +59,7 @@ namespace CLIENT
 			printf("Succeed to send data!\n");
 		}
 		sleep(3);
-		ssize_t readLength = read(mySocket, readData, 100);
+		ssize_t readLength = read(mySocket, readData, MAXSIZE);
 		if (readLength < 0)
 		{
 			fprintf(stderr, "Failed to read data!\n");
@@ -80,66 +69,63 @@ namespace CLIENT
 		{
 			printf("Succeed to read data!\n");
 		}
-		printf("result: %s\n", readData);
 		close(mySocket);
+		answer.len = readLength;
+		memcpy(answer.a, readData, sizeof(readData));
 	}
-	void UDPwork()
+	void UDPwork(const char *address, int port, unsigned char *sendData, int dataSize)
 	{
-		InputAddressAndData();
 		int mySocket = socket(DOMAIN, SOCK_DGRAM, 0);
 		if (mySocket == -1)
 		{
 			fprintf(stderr, "Failed to create UDP socket!\n");
 			return;
 		}
-		else
-		{
-			printf("Succeed to create UDP socket!\n");
-		}
+		// else
+		// {
+		// 	printf("Succeed to create UDP socket!\n");
+		// }
 		// describe an Internet socket address
 		sockaddr_in serverAddress;
 		serverAddress.sin_family = DOMAIN;					// address family
 		serverAddress.sin_addr.s_addr = inet_addr(address); // IP address
 		serverAddress.sin_port = htons(port);				// port
-		ssize_t sendLength = sendto(mySocket, sendData, strlen(sendData), 0, (const sockaddr *)&serverAddress, sizeof(serverAddress));
+		ssize_t sendLength = sendto(mySocket, sendData, dataSize, 0, (const sockaddr *)&serverAddress, sizeof(serverAddress));
 		if (sendLength < 0)
 		{
 			fprintf(stderr, "Failed to send data!\n");
 			return;
 		}
-		else
-		{
-			printf("Succeed to send data!\n");
-		}
-		sleep(3);
+		// else
+		// {
+		// 	printf("Succeed to send data!\n");
+		// }
 		socklen_t socklen = sizeof(serverAddress);
-		ssize_t recvLength = recvfrom(mySocket, readData, 100, 0, (sockaddr *)&serverAddress, &socklen);
+		ssize_t recvLength = recvfrom(mySocket, readData, MAXSIZE, 0, (sockaddr *)&serverAddress, &socklen);
 		if (recvLength < 0)
 		{
 			fprintf(stderr, "Failed to receive data!\n");
 			return;
 		}
-		else
-		{
-			printf("Succeed to receive data!\n");
-		}
-		printf("result: %s\n", readData);
+		// else
+		// {
+		// 	printf("Succeed to receive data!\n");
+		// }
 		close(mySocket);
+		answer.len = recvLength;
+		memcpy(answer.a, readData, sizeof(readData));
 	}
-	int Main(int _)
+	dataPackage Main(const char *protocol, const char *address, int port, unsigned char *sendData, int dataSize)
 	{
-		char chosenProtocol[10];
-		printf("Choose TCP/UDP protocol: ");
-		scanf("%s", chosenProtocol);
-		if (strcmp(chosenProtocol, "TCP") == 0)
-			TCPwork();
-		else if (strcmp(chosenProtocol, "UDP") == 0)
-			UDPwork();
+		answer.len = -1;
+		if (strcmp(protocol, "TCP") == 0)
+			TCPwork(address, port, sendData, dataSize);
+		else if (strcmp(protocol, "UDP") == 0)
+			UDPwork(address, port, sendData, dataSize);
 		else
 		{
 			fprintf(stderr, "Input invalid protocol!\n");
-			return 0;
 		}
-		return 0;
+		return answer;
 	}
 }
