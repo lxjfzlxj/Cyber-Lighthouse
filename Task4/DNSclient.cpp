@@ -32,6 +32,6 @@ int main(int argc, char *argv[])
 		canRD = false;
 	GENERATOR::dataPackage queryDNS = GENERATOR::Main(queryType.c_str(), domainName.c_str(), canRD);
 	CLIENT::dataPackage resultDNS = CLIENT::Main("UDP", DNSaddress.c_str(), DNSport, queryDNS.a, queryDNS.len);
-	RESOLVER::Main(resultDNS.a, resultDNS.len);
+	RESOLVER::Main(resultDNS.a,resultDNS.len);
 	return 0;
 }
