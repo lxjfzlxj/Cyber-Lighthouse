@@ -70,9 +70,23 @@ namespace GENERATOR
 			QTYPE = 1;
 			QCLASS = 1;
 		}
+		else if(strcmp(type,"NS")==0) {
+			ID = rand() % 65536;
+			QR = 0;
+			OPCODE = 0;
+			TC = 0;
+			RD = canRD;
+			QDCOUNT = 1;
+			ANCOUNT = 0;
+			NSCOUNT = 0;
+			ARCOUNT = 0;
+			domainName_Q = name;
+			QTYPE = 2;
+			QCLASS = 1;
+		}
 		else
 		{
-			puts("[Failed to query]: Only queries of type A are supported!");
+			puts("[Failed to query]: Only queries of type A,NS are supported!");
 			return answer;
 		}
 		Generate();

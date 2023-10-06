@@ -2,7 +2,7 @@
 #include "generator.h"
 #include "resolver.h"
 #include <bits/stdc++.h>
-std::string queryType = "A";
+std::string queryType;
 std::string DNSaddress;
 int DNSport;
 std::string domainName;
@@ -27,11 +27,17 @@ int main(int argc, char *argv[])
 	}
 	domainName = argv[argPos++];
 	if (argv[argPos++][0] == 'Y')
-		canRD = true;
-	else
+	{
 		canRD = false;
+		queryType = "NS";
+	}
+	else
+	{
+		canRD = true;
+		queryType = "A";
+	}
 	GENERATOR::dataPackage queryDNS = GENERATOR::Main(queryType.c_str(), domainName.c_str(), canRD);
 	CLIENT::dataPackage resultDNS = CLIENT::Main("UDP", DNSaddress.c_str(), DNSport, queryDNS.a, queryDNS.len);
-	RESOLVER::Main(resultDNS.a,resultDNS.len);
+	RESOLVER::Main(resultDNS.a, resultDNS.len);
 	return 0;
 }
