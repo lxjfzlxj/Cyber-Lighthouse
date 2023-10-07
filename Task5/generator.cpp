@@ -70,7 +70,8 @@ namespace GENERATOR
 			QTYPE = 1;
 			QCLASS = 1;
 		}
-		else if(strcmp(type,"NS")==0) {
+		else if (strcmp(type, "NS") == 0)
+		{
 			ID = rand() % 65536;
 			QR = 0;
 			OPCODE = 0;

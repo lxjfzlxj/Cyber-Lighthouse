@@ -1,4 +1,5 @@
 #include <bits/stdc++.h>
+#include "resolver.h"
 namespace RESOLVER
 {
 #define MAXSIZE 1000
@@ -531,8 +532,9 @@ namespace RESOLVER
 			}
 		}
 	}
-	void Main(unsigned char *data, int dataSize)
+	ResolveResult Main(unsigned char *data, int dataSize)
 	{
+		now = 0;
 		memcpy(a, data, dataSize);
 
 		GetHeader_ID();
@@ -565,9 +567,23 @@ namespace RESOLVER
 		}
 
 		// PrintResult();
-		for(int i=0;i<ANCOUNT;i++) {
-			if(Answer[i].TYPE==1)
+		ResolveResult allResult;
+		allResult.num = 0;
+		allResult.name = domainName_Q[0];
+		for (int i = 0; i < ANCOUNT; i++)
+		{
+			if (Answer[i].TYPE == 1)
+			{
+				allResult.result[allResult.num++] = (OneResult){Answer[i].TTL, Answer[i].A_DATA};
+			}
+			// else if (Answer[i].TYPE == 5)
+			// {
+			// 	result.signal = 1;
+			// 	result.name = Answer[i].CNAME_DATA;
+			// 	return result;
+			// }
 		}
+		return allResult;
 	}
 }
 // int main()

@@ -28,14 +28,13 @@ int main(int argc, char *argv[])
 	domainName = argv[argPos++];
 	if (argv[argPos++][0] == 'Y')
 	{
-		canRD = false;
 		queryType = "NS";
 	}
 	else
 	{
-		canRD = true;
 		queryType = "A";
 	}
+	canRD=true;
 	GENERATOR::dataPackage queryDNS = GENERATOR::Main(queryType.c_str(), domainName.c_str(), canRD);
 	CLIENT::dataPackage resultDNS = CLIENT::Main("UDP", DNSaddress.c_str(), DNSport, queryDNS.a, queryDNS.len);
 	RESOLVER::Main(resultDNS.a, resultDNS.len);
